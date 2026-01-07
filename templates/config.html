@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Analytics - Configuration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .form-section h2 {
+            margin-top: 0;
+            color: #555;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="password"], input[type="number"], input[type="url"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .btn-test {
+            background-color: #28a745;
+        }
+        .btn-test:hover {
+            background-color: #1e7e34;
+        }
+        .btn-validate {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .btn-validate:hover {
+            background-color: #e0a800;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .alert-error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .platform-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            border-radius: 50%;
+            color: white;
+            margin-right: 8px;
+            font-size: 14px;
+        }
+        .twitter { background-color: #1DA1F2; }
+        .youtube { background-color: #FF0000; }
+        .instagram { background-color: #E4405F; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Social Media Analytics Configuration</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="{{ url_for('config_page') }}">
+            <div class="form-section">
+                <h2><span class="platform-icon twitter">T</span> Twitter Configuration</h2>
+                <div class="form-group">
+                    <label for="twitter_bearer_token">Bearer Token:</label>
+                    <input type="password" id="twitter_bearer_token" name="twitter_bearer_token" value="{{ config.twitter.bearer_token if config.twitter.bearer_token else '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="twitter_api_key">API Key:</label>
+                    <input type="password" id="twitter_api_key" name="twitter_api_key" value="{{ config.twitter.api_key if config.twitter.api_key else '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="twitter_api_secret">API Secret:</label>
+                    <input type="password" id="twitter_api_secret" name="twitter_api_secret" value="{{ config.twitter.api_secret if config.twitter.api_secret else '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="twitter_access_token">Access Token:</label>
+                    <input type="password" id="twitter_access_token" name="twitter_access_token" value="{{ config.twitter.access_token if config.twitter.access_token else '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="twitter_access_token_secret">Access Token Secret:</label>
+                    <input type="password" id="twitter_access_token_secret" name="twitter_access_token_secret" value="{{ config.twitter.access_token_secret if config.twitter.access_token_secret else '' }}">
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h2><span class="platform-icon youtube">Y</span> YouTube Configuration</h2>
+                <div class="form-group">
+                    <label for="youtube_api_key">API Key:</label>
+                    <input type="password" id="youtube_api_key" name="youtube_api_key" value="{{ config.youtube.api_key if config.youtube.api_key else '' }}">
+                </div>
+            </div>
+            
+            
+            <div class="form-section">
+                <h2>Personal Tracking Settings</h2>
+                <div class="form-group">
+                    <label for="enable_viewing_tracking">Enable Viewing Tracking:</label>
+                    <input type="checkbox" id="enable_viewing_tracking" name="enable_viewing_tracking" value="true" {% if config.enable_viewing_tracking %}checked{% endif %}>
+                </div>
+                <div class="form-group">
+                    <label for="max_viewing_history_days">Max Viewing History Days:</label>
+                    <input type="number" id="max_viewing_history_days" name="max_viewing_history_days" value="{{ config.max_viewing_history_days }}">
+                </div>
+                <div class="form-group">
+                    <label for="recommendation_update_interval">Recommendation Update Interval (seconds):</label>
+                    <input type="number" id="recommendation_update_interval" name="recommendation_update_interval" value="{{ config.recommendation_update_interval }}">
+                </div>
+                <div class="form-group">
+                    <label for="privacy_mode">Privacy Mode:</label>
+                    <input type="checkbox" id="privacy_mode" name="privacy_mode" value="true" {% if config.privacy_mode %}checked{% endif %}>
+                </div>
+                <div class="form-group">
+                    <label for="browser_extension_api_key">Browser Extension API Key:</label>
+                    <input type="password" id="browser_extension_api_key" name="browser_extension_api_key" value="{{ config.browser_extension_api_key }}">
+                </div>
+                <div class="form-group">
+                    <label for="content_discovery_api_key">Content Discovery API Key:</label>
+                    <input type="password" id="content_discovery_api_key" name="content_discovery_api_key" value="{{ config.content_discovery_api_key }}">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Application Settings</h2>
+                <div class="form-group">
+                    <label for="database_path">Database Path:</label>
+                    <input type="text" id="database_path" name="database_path" value="{{ config.database_path }}">
+                </div>
+                <div class="form-group">
+                    <label for="report_directory">Report Directory:</label>
+                    <input type="text" id="report_directory" name="report_directory" value="{{ config.report_directory }}">
+                </div>
+                <div class="form-group">
+                    <label for="max_posts_per_request">Max Posts Per Request:</label>
+                    <input type="number" id="max_posts_per_request" name="max_posts_per_request" value="{{ config.max_posts_per_request }}">
+                </div>
+                <div class="form-group">
+                    <label for="request_delay">Request Delay (seconds):</label>
+                    <input type="number" step="0.1" id="request_delay" name="request_delay" value="{{ config.request_delay }}">
+                </div>
+            </div>
+            
+            <button type="submit">Save Configuration</button>
+            <button type="button" class="btn-validate" onclick="validateConfig()">Validate Configuration</button>
+            <button type="button" class="btn-test" onclick="testConfig()">Test Configuration</button>
+        </form>
+    </div>
+    
+    <script>
+        async function validateConfig() {
+            try {
+                const response = await fetch('/config/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                alert('Error validating configuration: ' + error.message);
+            }
+        }
+        
+        async function testConfig() {
+            try {
+                const response = await fetch('/config/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                alert('Error testing configuration: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

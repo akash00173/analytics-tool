@@ -1,0 +1,31 @@
+{
+  "collection_settings": {
+    "twitter_username": "sample_user",
+    "reddit_subreddit": "technology",
+    "post_count": 20,
+    "collection_interval_minutes": 60
+  },
+  "analysis_settings": {
+    "calculate_engagement_score": true,
+    "identify_peak_times": true,
+    "demographic_analysis": true,
+    "cross_platform_comparison": true
+  },
+  "visualization_settings": {
+    "generate_plots": true,
+    "save_plots": false,
+    "plot_format": "html",
+    "dashboard_enabled": true
+  },
+  "storage_settings": {
+    "database_path": "social_media_data.db",
+    "backup_enabled": true,
+    "backup_interval_hours": 24,
+    "retention_days": 365
+  },
+  "output_settings": {
+    "report_format": "txt",
+    "include_visualizations_in_report": false,
+    "save_raw_data": true
+  }
+}

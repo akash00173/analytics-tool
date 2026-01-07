@@ -1,0 +1,22 @@
+{
+    "twitter": {
+        "bearer_token": "AAAAAAAAAAAAAAAAAAAAAE9I5gEAAAAAiNRbw9qk4ntUmUOgpN8S73fymXY%3DZ9lfIUsu1e8LZsGXbPbhGwnkzG5WKp8RQGbgy3JtH877wADc87",
+        "api_key": "97DKzt9UYpFNxhgOJy04NP9NW",
+        "api_secret": "39c1WZG2ka66zZIk687WcHgw1Fm5wgGsAadTCpsUlhmugXX3YA",
+        "access_token": "1499087836938657793-rynXx27qkDUn0Oub6T6OjpboLJHtPE",
+        "access_token_secret": "rOcm5iDXQPDoEFxJQGiQYZ5cNW5bLvA3rfUWf2hpvzHpo"
+    },
+    "youtube": {
+        "api_key": "AIzaSyAb3A89r-XB2M-6arR_4YHMACB3ca4-wn8"
+    },
+    "enable_viewing_tracking": true,
+    "max_viewing_history_days": 30,
+    "recommendation_update_interval": 300,
+    "privacy_mode": false,
+    "browser_extension_api_key": "VWeQfAifWxM-T05eMT7v54eRKUTXb9uCib4zgGRPWMw",
+    "content_discovery_api_key": "KBOcH_-1ZL8w2fEUeUshDV1cTFNORCRHklo8V2NhQwU",
+    "database_path": "social_media_data.db",
+    "report_directory": "reports",
+    "max_posts_per_request": 50,
+    "request_delay": 1.0
+}

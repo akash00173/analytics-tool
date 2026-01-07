@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Social Media Analytics Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            scroll-behavior: smooth;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        .section {
+            margin-bottom: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .platform-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            height: 400px;
+            width: 100%;
+        }
+        .post-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .high-engagement {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .hashtags-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .hashtag-item {
+            background: #e7f3ff;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid #b8daff;
+        }
+        .platform-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .platform-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+        .twitter-icon { color: #1DA1F2; }
+        .youtube-icon { color: #FF0000; }
+        .scroll-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .platform-comparison {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .platform-summary {
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f8f9fa;
+        }
+        .twitter-summary {
+            border-left: 4px solid #1DA1F2;
+        }
+        .youtube-summary {
+            border-left: 4px solid #FF0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Real-Time Social Media Analytics Dashboard</h1>
+            <p>Monitoring Twitter and YouTube in real-time</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="twitter-count">0</div>
+                <div class="stat-label">Twitter Posts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="youtube-count">0</div>
+                <div class="stat-label">YouTube Videos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="engagement-count">0</div>
+                <div class="stat-label">Avg Engagement</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="trending-count">0</div>
+                <div class="stat-label">Trending Hashtags</div>
+            </div>
+        </div>
+
+        <div class="platform-comparison">
+            <div class="platform-summary twitter-summary">
+                <h3><span class="platform-icon twitter-icon">🐦</span> Twitter Summary</h3>
+                <p>Real-time tweet engagement metrics</p>
+            </div>
+            <div class="platform-summary youtube-summary">
+                <h3><span class="platform-icon youtube-icon">📺</span> YouTube Summary</h3>
+                <p>Real-time video engagement metrics</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Engagement Over Time</h2>
+            <div class="platform-section">
+                <div>
+                    <h3><span class="platform-icon twitter-icon">🐦</span> Twitter Engagement Over Time</h3>
+                    <div id="twitter-chart" class="chart-container"></div>
+                </div>
+                <div>
+                    <h3><span class="platform-icon youtube-icon">📺</span> YouTube Engagement Over Time</h3>
+                    <div id="youtube-chart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Platform Comparison</h2>
+            <div id="comparison-chart" class="chart-container"></div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Trending Hashtags</h2>
+            <div id="hashtags-list" class="hashtags-list">
+                <!-- Hashtags will be populated here -->
+            </div>
+            <div id="hashtags-chart" class="chart-container"></div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">High Engagement Content</h2>
+            <div id="high-engagement-posts">
+                <!-- High engagement posts will be shown here -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Platform-Specific Insights</h2>
+            <div class="platform-section">
+                <div>
+                    <h3><span class="platform-icon twitter-icon">🐦</span> Twitter Insights</h3>
+                    <div id="twitter-insights">
+                        <p>Twitter-specific analytics and insights will appear here.</p>
+                    </div>
+                </div>
+                <div>
+                    <h3><span class="platform-icon youtube-icon">📺</span> YouTube Insights</h3>
+                    <div id="youtube-insights">
+                        <p>YouTube-specific analytics and insights will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Personal Recommendations</h2>
+            <div id="personal-recommendations">
+                <!-- Personal recommendations will be shown here -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Your Viewing Insights</h2>
+            <div id="personal-insights">
+                <!-- Personal insights will be shown here -->
+            </div>
+        </div>
+    </div>
+
+    <button class="scroll-to-top" onclick="scrollToTop()">↑</button>
+
+    <script>
+        // Connect to the Socket.IO server
+        const socket = io();
+
+        // Listen for dashboard updates
+        socket.on('dashboard_update', function(data) {
+            updateDashboard(data);
+        });
+
+        // Listen for personal data updates
+        socket.on('personal_data_update', function(data) {
+            updatePersonalData(data);
+        });
+
+        // Listen for new posts
+        socket.on('new_post', function(data) {
+            addNewPost(data);
+        });
+
+        // Initialize charts
+        let twitterChart = null;
+        let youtubeChart = null;
+        let comparisonChart = null;
+        let hashtagsChart = null;
+
+        // Function to update the dashboard with new data
+        function updateDashboard(data) {
+            // Update stats counters
+            document.getElementById('twitter-count').textContent = data.twitter_engagement.length;
+            document.getElementById('youtube-count').textContent = data.youtube_engagement.length;
+
+            // Calculate average engagement
+            const allEngagement = [
+                ...data.twitter_engagement.map(p => p.engagement),
+                ...data.youtube_engagement.map(p => p.engagement)
+            ];
+            const avgEngagement = allEngagement.length > 0
+                ? (allEngagement.reduce((a, b) => a + b, 0) / allEngagement.length).toFixed(2)
+                : 0;
+            document.getElementById('engagement-count').textContent = avgEngagement;
+
+            document.getElementById('trending-count').textContent = data.trending_hashtags.length;
+
+            // Update Twitter chart
+            updateTwitterChart(data.twitter_engagement);
+
+            // Update YouTube chart
+            updateYouTubeChart(data.youtube_engagement);
+
+            // Update comparison chart
+            updateComparisonChart(
+                data.twitter_engagement,
+                data.youtube_engagement
+            );
+
+            // Update hashtags
+            updateHashtags(data.trending_hashtags);
+
+            // Update high engagement posts
+            updateHighEngagementPosts(data.high_engagement_posts);
+
+            // Update personal recommendations and insights if available
+            if (data.personal_recommendations && data.personal_insights) {
+                updatePersonalData({
+                    personal_recommendations: data.personal_recommendations,
+                    personal_insights: data.personal_insights
+                });
+            }
+        }
+
+        // Function to update personal data
+        function updatePersonalData(data) {
+            // Update personal recommendations
+            updatePersonalRecommendations(data.personal_recommendations);
+
+            // Update personal insights
+            updatePersonalInsights(data.personal_insights);
+        }
+
+        // Function to update personal recommendations
+        function updatePersonalRecommendations(recommendations) {
+            const container = document.getElementById('personal-recommendations');
+            container.innerHTML = '';
+
+            if (!recommendations || recommendations.length === 0) {
+                container.innerHTML = '<p>No personalized recommendations available yet.</p>';
+                return;
+            }
+
+            recommendations.forEach(rec => {
+                const recElement = document.createElement('div');
+                recElement.className = 'post-item high-engagement';
+
+                recElement.innerHTML = `
+                    <div><strong>Platform:</strong> <span class="platform-icon ${rec.platform.toLowerCase() === 'twitter' ? 'twitter-icon' : 'youtube-icon'}">${rec.platform === 'Twitter' ? '🐦' : '📺'}</span> ${rec.platform}</div>
+                    <div><strong>Title:</strong> ${rec.title}</div>
+                    <div><strong>Description:</strong> ${rec.description}</div>
+                    <div><strong>Recommended for:</strong> ${rec.recommended_for.join(', ')}</div>
+                    <div><strong>Confidence:</strong> ${(rec.confidence_score * 100).toFixed(1)}%</div>
+                    <div><strong>Est. Watch Time:</strong> ${Math.floor(rec.estimated_watch_time / 60)}m ${rec.estimated_watch_time % 60}s</div>
+                    <a href="${rec.url}" target="_blank" style="display:inline-block; margin-top:10px; padding:5px 10px; background:#007bff; color:white; text-decoration:none; border-radius:4px;">View Content</a>
+                `;
+
+                container.appendChild(recElement);
+            });
+        }
+
+        // Function to update personal insights
+        function updatePersonalInsights(insights) {
+            const container = document.getElementById('personal-insights');
+            container.innerHTML = '';
+
+            if (!insights || Object.keys(insights).length === 0) {
+                container.innerHTML = '<p>No personal insights available yet.</p>';
+                return;
+            }
+
+            // Create insights summary
+            const summaryDiv = document.createElement('div');
+            summaryDiv.innerHTML = `
+                <h3>Your Viewing Summary</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${insights.viewing_summary.total_content_viewed || 0}</div>
+                        <div class="stat-label">Total Content Viewed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${Math.round((insights.viewing_summary.total_watch_time || 0) / 60)}m</div>
+                        <div class="stat-label">Total Watch Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${(insights.viewing_summary.average_watch_time || 0).toFixed(1)}s</div>
+                        <div class="stat-label">Avg Watch Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${(insights.recommendation_accuracy || 0 * 100).toFixed(1)}%</div>
+                        <div class="stat-label">Recommendation Accuracy</div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(summaryDiv);
+
+            // Add preferred topics
+            if (insights.preferred_topics && insights.preferred_topics.length > 0) {
+                const topicsDiv = document.createElement('div');
+                topicsDiv.innerHTML = `
+                    <h3 style="margin-top: 20px;">Your Preferred Topics</h3>
+                    <div class="hashtags-list">
+                        ${insights.preferred_topics.slice(0, 10).map(topic =>
+                            `<div class="hashtag-item">${topic.preference_value} (${topic.frequency})</div>`
+                        ).join('')}
+                    </div>
+                `;
+                container.appendChild(topicsDiv);
+            }
+
+            // Add platform preferences
+            if (insights.content_by_platform && Object.keys(insights.content_by_platform).length > 0) {
+                const platformDiv = document.createElement('div');
+                platformDiv.innerHTML = `
+                    <h3 style="margin-top: 20px;">Platform Preferences</h3>
+                    <div class="platform-section">
+                        ${Object.entries(insights.content_by_platform).map(([platform, stats]) =>
+                            `<div class="platform-summary ${platform === 'twitter' ? 'twitter-summary' : 'youtube-summary'}">
+                                <h4><span class="platform-icon ${platform === 'twitter' ? 'twitter-icon' : 'youtube-icon'}">${platform === 'twitter' ? '🐦' : '📺'}</span> ${platform.charAt(0).toUpperCase() + platform.slice(1)}</h4>
+                                <p>Content viewed: ${stats.content_count}</p>
+                                <p>Total watch time: ${Math.round(stats.total_watch_duration / 60)}m</p>
+                            </div>`
+                        ).join('')}
+                    </div>
+                `;
+                container.appendChild(platformDiv);
+            }
+        }
+
+        function updateTwitterChart(data) {
+            const timestamps = data.map(item => item.time);
+            const engagements = data.map(item => item.engagement);
+
+            const trace = {
+                x: timestamps,
+                y: engagements,
+                mode: 'lines+markers',
+                name: 'Twitter',
+                line: { color: '#1DA1F2' }
+            };
+
+            const layout = {
+                title: 'Twitter Engagement Over Time',
+                xaxis: { title: 'Time' },
+                yaxis: { title: 'Engagement' }
+            };
+
+            if (twitterChart) {
+                Plotly.react('twitter-chart', [trace], layout);
+            } else {
+                twitterChart = Plotly.newPlot('twitter-chart', [trace], layout);
+            }
+        }
+
+        function updateYouTubeChart(data) {
+            const timestamps = data.map(item => item.time);
+            const engagements = data.map(item => item.engagement);
+
+            const trace = {
+                x: timestamps,
+                y: engagements,
+                mode: 'lines+markers',
+                name: 'YouTube',
+                line: { color: '#FF0000' }
+            };
+
+            const layout = {
+                title: 'YouTube Engagement Over Time',
+                xaxis: { title: 'Time' },
+                yaxis: { title: 'Engagement' }
+            };
+
+            if (youtubeChart) {
+                Plotly.react('youtube-chart', [trace], layout);
+            } else {
+                youtubeChart = Plotly.newPlot('youtube-chart', [trace], layout);
+            }
+        }
+
+        function updateComparisonChart(twitterData, youtubeData) {
+            const twitterTrace = {
+                x: twitterData.map(item => item.time),
+                y: twitterData.map(item => item.engagement),
+                mode: 'lines+markers',
+                name: 'Twitter',
+                line: { color: '#1DA1F2' }
+            };
+
+            const youtubeTrace = {
+                x: youtubeData.map(item => item.time),
+                y: youtubeData.map(item => item.engagement),
+                mode: 'lines+markers',
+                name: 'YouTube',
+                line: { color: '#FF0000' }
+            };
+
+            const layout = {
+                title: 'Platform Comparison',
+                xaxis: { title: 'Time' },
+                yaxis: { title: 'Engagement' }
+            };
+
+            if (comparisonChart) {
+                Plotly.react('comparison-chart', [twitterTrace, youtubeTrace], layout);
+            } else {
+                comparisonChart = Plotly.newPlot('comparison-chart', [twitterTrace, youtubeTrace], layout);
+            }
+        }
+
+        function updateHashtags(hashtags) {
+            // Update the list of hashtags
+            const hashtagsList = document.getElementById('hashtags-list');
+            hashtagsList.innerHTML = '';
+
+            hashtags.forEach(hashtag => {
+                const hashtagElement = document.createElement('div');
+                hashtagElement.className = 'hashtag-item';
+                hashtagElement.textContent = `${hashtag.hashtag} (${hashtag.count})`;
+                hashtagsList.appendChild(hashtagElement);
+            });
+
+            // Create hashtags chart
+            const hashtagNames = hashtags.map(h => h.hashtag);
+            const hashtagCounts = hashtags.map(h => h.count);
+
+            const trace = {
+                x: hashtagCounts,
+                y: hashtagNames,
+                type: 'bar',
+                orientation: 'h',
+                marker: { color: '#1DA1F2' }
+            };
+
+            const layout = {
+                title: 'Trending Hashtags',
+                xaxis: { title: 'Count' },
+                yaxis: { title: 'Hashtag' }
+            };
+
+            if (hashtagsChart) {
+                Plotly.react('hashtags-chart', [trace], layout);
+            } else {
+                hashtagsChart = Plotly.newPlot('hashtags-chart', [trace], layout);
+            }
+        }
+
+        function updateHighEngagementPosts(posts) {
+            const container = document.getElementById('high-engagement-posts');
+            container.innerHTML = '';
+
+            if (posts.length === 0) {
+                container.innerHTML = '<p>No high engagement posts at the moment.</p>';
+                return;
+            }
+
+            posts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.className = 'post-item high-engagement';
+
+                // Format content preview
+                const contentPreview = post.content ?
+                    (post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content) :
+                    'No content available';
+
+                // Determine platform-specific styling
+                const platformClass = post.platform === 'youtube' ? 'youtube-icon' : 'twitter-icon';
+                const platformIcon = post.platform === 'youtube' ? '📺' : '🐦';
+
+                postElement.innerHTML = `
+                    <div><strong>Platform:</strong> <span class="platform-icon ${platformClass}">${platformIcon}</span> ${post.platform}</div>
+                    <div><strong>Engagement:</strong> ${post.engagement_score}</div>
+                    <div><strong>Content:</strong> ${contentPreview}</div>
+                    <div><strong>Time:</strong> ${new Date(post.created_at).toLocaleString()}</div>
+                `;
+
+                container.appendChild(postElement);
+            });
+        }
+
+        function addNewPost(data) {
+            // This function would handle new posts as they come in
+            console.log('New post received:', data);
+        }
+
+        // Function to scroll to top
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Request initial update
+        socket.emit('request_update');
+    </script>
+</body>
+</html>
